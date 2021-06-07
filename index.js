@@ -7,11 +7,16 @@ const app = express()
 app.use(express.urlencoded({ extended: true }));
 
 //set up template engine to render html files
-app.set('view engine', 'html');
+app.set('view engine', 'ejs');
 app.engine('html', require('ejs').renderFile);
 
-//index route
-app.get('/',  async (request, response) =>{
+// index route
+app.get('/', (request, response) =>{
+    response.render('index')
+})
+
+app.post('/',  async (request, response) =>{
+    const {article, author} = request.body;
     const auth = new google.auth.GoogleAuth({
         keyFile: "keys.json", //the key file
         //url to spreadsheets API
@@ -39,6 +44,7 @@ app.get('/',  async (request, response) =>{
         spreadsheetId, // spreadsheet id
         range: "Sheet1!A:A", //range of cells to read from.
     })
+    
 
     //write data into the google sheets
     await googleSheetsInstance.spreadsheets.values.append({
@@ -47,16 +53,17 @@ app.get('/',  async (request, response) =>{
         range: "Sheet1!A:B", //sheet name and range of cells
         valueInputOption: "USER_ENTERED", // The information will be passed according to what the usere passes in as date, number or text
         resource: {
-            values: [["Git followers tutorial", "Mia Roberts"]],
+            values: [[article, author]]
         },
     });
-      
+    
+    response.send("Request submitted.!!")
 });
 
 
-const PORT = 5000;
+const PORT = 3000;
 
 //start server
 const server = app.listen(PORT, () =>{
-    console.log(`Server started on port ${PORT}`);
+    console.log(`Server started on port localhost:${PORT}`);
 });
